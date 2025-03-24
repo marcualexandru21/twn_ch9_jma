@@ -44,7 +44,7 @@ pipeline {
         stage("deploy") {
             steps {
                 script {
-                    def dockerCmd = 'docker run -p 8080:8080 -d mbradu/twn-ch9-jma:1.0'
+                    def dockerCmd = "docker run -p 8080:8080 -d ${env.IMAGE_NAME}"
                     sshagent(['ec2-server-key']) {
                         sh "ssh -o StrictHostKeyChecking=no ec2-user@18.184.225.119 ${dockerCmd}"
                     }
