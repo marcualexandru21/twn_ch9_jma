@@ -10,11 +10,10 @@ pipeline {
     tools {
         maven 'maven-3.9.9'
     }
+    environment {
+        env.IMAGE_NAME = 'mbradu/twn-ch9-jma:1.1'
+    }
     stages {
-        environment {
-            env.IMAGE_NAME = 'mbradu/twn-ch9-jma:1.1'
-        }
-
         stage("test") {
             steps {
                 script {
