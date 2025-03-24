@@ -7,12 +7,10 @@ library identifier: 'jenkins-shared-library@master', retriever: modernSCM(
 
 pipeline {   
     agent any
+    tools {
+        maven 'maven-3.9.9'
+    }
     stages {
-
-        tools {
-            maven 'maven-3.9.9'
-        }
-
         environment {
             env.IMAGE_NAME = 'mbradu/twn-ch9-jma:1.1'
         }
