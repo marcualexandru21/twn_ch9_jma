@@ -23,6 +23,17 @@ pipeline {
             }
         }
 
+        stage("increment version") {
+            steps {
+                script {
+                   sh 'mvn build-helper:parse-version versions:set \
+                   -DnewVersion=\\\${parsedVersion.majorVersion}.\\\${parsedVersion.minorVersion}.\\\${parsedVersion.nextIncrementalVersion} \
+                   versions:commit'
+
+                }
+            }
+        }
+
         stage("build") {
             steps {
                 script {
@@ -34,6 +45,9 @@ pipeline {
         stage("build the docker image") {
             steps {
                 script{
+                    def version = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
+                    env.IMAGE_NAME = "${IMAGE_NAME}-${version}-${BUILD_NUMBER}"
+
                     buildImage(env.IMAGE_NAME)
                     dockerLogin()
                     dockerPush(env.IMAGE_NAME)
@@ -45,13 +59,34 @@ pipeline {
             steps {
                 script {
                     def shellCmd = "bash ./server-cmds.sh ${IMAGE_NAME}"
+                    def userAndServer = "ec2-user@18.184.225.119"
                     sshagent(['ec2-server-key']) {
-                        sh "scp server-cmds.sh ec2-user@18.184.225.119:/home/ec2-user"
-                        sh "scp docker-compose.yaml ec2-user@18.184.225.119:/home/ec2-user"
-                        sh "ssh -o StrictHostKeyChecking=no ec2-user@18.184.225.119 ${shellCmd}"
+                        sh "scp server-cmds.sh ${userAndServer}:/home/ec2-user"
+                        sh "scp docker-compose.yaml ${userAndServer}:/home/ec2-user"
+                        sh "ssh -o StrictHostKeyChecking=no ${userAndServer} ${shellCmd}"
                     }
                 }
             }
-        }               
+        }
+
+        stage('commit version update') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'github-credentials-ex-ch8-with-token', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                        sh 'git config user.email "marcualexandru21@gmail.com"'
+                        sh 'git config user.name "marcualexandru21"'
+
+                        sh 'git status'
+                        sh 'git branch'
+                        sh 'git config --list'
+
+                        sh "git remote set-url origin https://${USER}:${PASS}@github.com/marcualexandru21/twn_ch9_jma.git"
+                        sh 'git add .'
+                        sh 'git commit -m "ci: version bump"'
+                        sh 'git push origin HEAD:starting-code'
+                    }
+                }
+            }
+        }
     }
 } 
