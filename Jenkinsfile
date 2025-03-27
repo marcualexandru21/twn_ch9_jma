@@ -46,11 +46,11 @@ pipeline {
             steps {
                 script{
                     def version = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
-                    def fullImageName = "${IMAGE_NAME}${version}-${BUILD_NUMBER}"
+                     env.FULL_IMAGE_NAME = "${IMAGE_NAME}${version}-${BUILD_NUMBER}"
 
-                    buildImage(fullImageName)
+                    buildImage(env.FULL_IMAGE_NAME)
                     dockerLogin()
-                    dockerPush(fullImageName)
+                    dockerPush(env.FULL_IMAGE_NAME)
                 }
             }
         }
@@ -58,7 +58,7 @@ pipeline {
         stage("deploy") {
             steps {
                 script {
-                    def shellCmd = "bash ./server-cmds.sh ${IMAGE_NAME}"
+                    def shellCmd = "bash ./server-cmds.sh ${env.FULL_IMAGE_NAME}"
                     def userAndServer = "ec2-user@18.184.225.119"
                     sshagent(['ec2-server-key']) {
                         sh "scp server-cmds.sh ${userAndServer}:/home/ec2-user"
