@@ -46,11 +46,11 @@ pipeline {
             steps {
                 script{
                     def version = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
-                    env.IMAGE_NAME = "${IMAGE_NAME}-${version}-${BUILD_NUMBER}"
+                    def fullImageName = "${IMAGE_NAME}-${version}-${BUILD_NUMBER}"
 
-                    buildImage(env.IMAGE_NAME)
+                    buildImage(fullImageName)
                     dockerLogin()
-                    dockerPush(env.IMAGE_NAME)
+                    dockerPush(fullImageName)
                 }
             }
         }
