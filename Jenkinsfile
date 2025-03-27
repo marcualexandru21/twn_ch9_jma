@@ -11,7 +11,7 @@ pipeline {
         maven 'maven-3.9.9'
     }
     environment {
-        def IMAGE_NAME = 'mbradu/twn-ch9-jma:1.1'
+        def IMAGE_NAME = 'mbradu/twn-ch9-jma:'
     }
     stages {
         stage("test") {
@@ -46,7 +46,7 @@ pipeline {
             steps {
                 script{
                     def version = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
-                    def fullImageName = "${IMAGE_NAME}-${version}-${BUILD_NUMBER}"
+                    def fullImageName = "${IMAGE_NAME}${version}-${BUILD_NUMBER}"
 
                     buildImage(fullImageName)
                     dockerLogin()
